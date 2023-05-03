@@ -1,2 +1,3 @@
-# charter-assessment-kevin-page
+# charter-assessment-kevin-page-rewards
+
 Customer Rewards App for Charter Assessment

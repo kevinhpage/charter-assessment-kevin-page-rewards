@@ -16,6 +16,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * These test are run against tests data in test/resources/sql/test_transactions_data.sql
+ */
 @WebMvcTest(controllers = RewardsQueryController.class)
 class RewardsQueryControllerTest {
     @Autowired private MockMvc mockMvc;
@@ -29,21 +32,19 @@ class RewardsQueryControllerTest {
     void getRewardsPointsMonthlyArbitraryDates() throws Exception {
         Map<Integer, List<RewardPointsMonthly>> expected = Map.of(
                 101, List.of(
-                        new RewardPointsMonthly(1, 2020, 20),
-                        new RewardPointsMonthly(2, 2020, 17),
-                        new RewardPointsMonthly(4, 2020, 28),
-                        new RewardPointsMonthly(1, 2021, 3)),
+                        new RewardPointsMonthly(1, 2020, 90),
+                        new RewardPointsMonthly(2, 2020, 295)
+                ),
                 102, List.of(
-                        new RewardPointsMonthly(3, 2020, 18),
-                        new RewardPointsMonthly(10, 2020, 10),
-                        new RewardPointsMonthly(2, 2020, 15)
+                        new RewardPointsMonthly(2, 2020, 25),
+                        new RewardPointsMonthly(3, 2020, 460)
                 ));
 
         MvcResult mvcResult = mockMvc.perform(get("/rewards/query/monthly")
                 .param("startMonth", "1")
                 .param("startYear", "2020")
-                .param("endMonth", "2")
-                .param("endYear", "2021")
+                .param("endMonth", "3")
+                .param("endYear", "2020")
         ).andExpect(status().isOk()).andReturn();
 
         Map<Integer, List<RewardPointsMonthly>> actual = objectMapper.reader().readValue(mvcResult.toString());

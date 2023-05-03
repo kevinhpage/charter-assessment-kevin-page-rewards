@@ -2,12 +2,17 @@ package com.kevinpage.charter.assessment.rewards;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kevinpage.charter.assessment.rewards.entities.RewardPointsMonthly;
+import com.kevinpage.charter.assessment.rewards.repositories.TransactionsRepository;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -18,43 +23,32 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Tests the end-to-end retrieval of data from the database.
+ */
 @SpringBootTest
-@AutoConfigureMockMvc
-@TestPropertySource(locations = "classpath:application-integrationtest.properties")
 class RewardsApplicationTest {
-
-	@Autowired private MockMvc mockMvc;
-
+	@Autowired TransactionsRepository transactionsRepository;
+	@Autowired TestRestTemplate testRestTemplate;
 	@Autowired private ObjectMapper objectMapper;
 
-//	@Autowired private
-
-	@BeforeEach
-	public void setUp() {
-	}
-
 	@Test
-	public void getRewardsPointsMonthlyArbitraryDates() throws Exception {
+	@Sql("classpath:sql/test_transactions_data.sql")
+	public void getRewardsPointsMonthlyForThreeMonths() throws Exception {
 		Map<Integer, List<RewardPointsMonthly>> expected = Map.of(
 				101, List.of(
-						new RewardPointsMonthly(1, 2020, 20),
-						new RewardPointsMonthly(2, 2020, 17),
-						new RewardPointsMonthly(4, 2020, 28),
-						new RewardPointsMonthly(1, 2021, 3)),
+						new RewardPointsMonthly(1, 2020, 90),
+						new RewardPointsMonthly(2, 2020, 295)
+				),
 				102, List.of(
-						new RewardPointsMonthly(3, 2020, 18),
-						new RewardPointsMonthly(10, 2020, 10),
-						new RewardPointsMonthly(2, 2020, 15)
+						new RewardPointsMonthly(2, 2020, 25),
+						new RewardPointsMonthly(3, 2020, 460)
 				));
 
-		MvcResult mvcResult = mockMvc.perform(get("/rewards/query/monthly")
-				.param("startMonth", "1")
-				.param("startYear", "2020")
-				.param("endMonth", "2")
-				.param("endYear", "2021")
-		).andExpect(status().isOk()).andReturn();
+		ResponseEntity<String> response = testRestTemplate.getForEntity(
+				"/rewards/query/monthly/1?startMonth=1&startYear=2020&endMonth=3&endYear=2020", String.class);
 
-		Map<Integer, List<RewardPointsMonthly>> actual = objectMapper.reader().readValue(mvcResult.toString());
+		Map<Integer, List<RewardPointsMonthly>> actual = objectMapper.reader().readValue(response.getBody());
 		assertEquals(expected, actual);
 	}
 }
